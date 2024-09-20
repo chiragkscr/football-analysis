@@ -8,11 +8,14 @@ from utils import get_center_of_bbox, get_bbox_width
 import cv2
 import numpy as np
 
+#class Tracker which has all the methods to store, return tracks/frames
 class Tracker:
     def __init__(self, model_path):
         self.model = YOLO(model_path)
         self.tracker = sv.ByteTrack()
 
+
+    #Uses yolo for Detection 
     def detect_frames(self, frames):
         batch_size= 20
         detections = []
@@ -22,15 +25,16 @@ class Tracker:
             
         return detections
 
-
+    #returns detected objects with trackletst
     def get_object_tracks(self, frames, read_from_stub = False, stub_path = None) :
 
-        
+        #checks if its should be loaded from stubs
         if read_from_stub and stub_path is not None and os.path.exists(stub_path):
             with open(stub_path, 'rb') as f :
                 tracks = pickle.load(f)
             return tracks
         
+        #calling the above function
         detections = self.detect_frames(frames)
 
         tracks = {
@@ -39,6 +43,7 @@ class Tracker:
             'ball':[]
 
         }
+
 
         for frame_num, detection in enumerate(detections):
             
@@ -54,13 +59,15 @@ class Tracker:
                 if cls_names[class_id] =='goalkeeper':
                     detection_supervision.class_id[object_ind] = cls_names_inv['player']
 
-
+            #using tracker to track objects in the frame
             detection_with_tracks= self.tracker.update_with_detections(detection_supervision)
 
             tracks['players'].append({})
             tracks['refrees'].append({})
             tracks['ball'].append({})
 
+
+            
             for frame_detection in detection_with_tracks:
                 bbox = frame_detection[0].tolist()
                 cls_id = frame_detection[3]
@@ -82,13 +89,14 @@ class Tracker:
  
                 # print(detection_with_tracks)
 
+        #dumping the detection tracks to pickle file
         if stub_path is not None:
             with open(stub_path, 'wb') as f:
                 pickle.dump(tracks, f)
 
         return tracks
     
-
+    #function to draw ellipse around the player 
     def draw_ellipse(self,frame,bbox,color,track_id=None):
         
         y2 = int(bbox[3])
@@ -141,7 +149,7 @@ class Tracker:
         return frame
 
 
-    
+    #function to draw traingle above the ball
     def draw_traingle(self,frame,bbox,color):
         y= int(bbox[1])
         x,_ = get_center_of_bbox(bbox)
@@ -156,6 +164,7 @@ class Tracker:
 
         return frame
     
+    #function to draw all the annotations on the frame
     def draw_annotations(self,video_frames, tracks):
 
         output_video_frames= []
@@ -188,16 +197,9 @@ class Tracker:
                 frame = self.draw_ellipse(frame, referee["bbox"],(0,255,255))
             
             # Draw ball 
-
-            
             for track_id, ball in ball_dict.items():
                 frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
             
-
-
-
-            
-
             output_video_frames.append(frame)
 
 
