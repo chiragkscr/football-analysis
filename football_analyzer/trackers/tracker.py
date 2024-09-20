@@ -7,6 +7,7 @@ sys.path.append('../')
 from utils import get_center_of_bbox, get_bbox_width
 import cv2
 import numpy as np
+import pandas as pd
 
 #class Tracker which has all the methods to store, return tracks/frames
 class Tracker:
@@ -184,7 +185,6 @@ class Tracker:
             # Draw Players
             for track_id, player in player_dict.items():
                 color = player.get("team_color",(0,0,255))
-
                 frame = self.draw_ellipse(frame, player["bbox"],color, track_id)
             
 
@@ -206,6 +206,18 @@ class Tracker:
 
         return output_video_frames
         
+    def interpolate_ball_positions(self, ball_positions):
+        ball_positions = [x.get(1,{}).get('bbox',{}) for x in ball_positions]
+        df_ball_positions = pd.DataFrame(ball_positions, columns=['x1','y1','x2','y2'])
 
-   
+        #interpolate missing values
+        df_ball_positions = df_ball_positions.interpolate()
+        df_ball_positions = df_ball_positions.bfill() #if first and last frames if its missing
+
+
+        ball_positions = [{1:{"bbox":x}} for x in df_ball_positions.to_numpy().tolist()]
+
+        return ball_positions
+        
+    
         
