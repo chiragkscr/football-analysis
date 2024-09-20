@@ -90,12 +90,12 @@ class Tracker:
     
 
     def draw_ellipse(self,frame,bbox,color,track_id=None):
-        print('elipse starting')
+        
         y2 = int(bbox[3])
         x_center, _ = get_center_of_bbox(bbox)
         width = get_bbox_width(bbox)
 
-        print("drawing ellipse")
+
         cv2.ellipse(
             frame,
             center=(x_center,y2),
@@ -115,7 +115,7 @@ class Tracker:
         y1_rect = (y2- rectangle_height//2) +15
         y2_rect = (y2+ rectangle_height//2) +15
 
-        print("chekcing for elipse")
+
         if track_id is not None:
             cv2.rectangle(frame,
                           (int(x1_rect),int(y1_rect) ),
@@ -137,7 +137,7 @@ class Tracker:
                 2
             )
         
-        print("returning frame")
+        
         return frame
 
 
@@ -157,53 +157,51 @@ class Tracker:
         return frame
     
     def draw_annotations(self,video_frames, tracks):
-        print("a method started")
+
         output_video_frames= []
-        print("loop is gonna start")
+
         for frame_num, frame in enumerate(video_frames):
-            print("loop started")
+            
         
             frame = frame.copy()
 
-            print("players dict, n shit")
+
             player_dict = tracks["players"][frame_num]
             ball_dict = tracks["ball"][frame_num]
             referee_dict = tracks["refrees"][frame_num]
 
 
-            print("drawing players")
+            
             # Draw Players
             for track_id, player in player_dict.items():
                 color = player.get("team_color",(0,0,255))
-                print('its going to ellipse now')
+
                 frame = self.draw_ellipse(frame, player["bbox"],color, track_id)
-            print("players drawn")
+            
 
                 # if player.get('has_ball',False):
                 #     frame = self.draw_traingle(frame, player["bbox"],(0,0,255))
 
-            print("refree drawing")
+
             # Draw Referee
             for _, referee in referee_dict.items():
-                print("goiong to ref ellipse")
                 frame = self.draw_ellipse(frame, referee["bbox"],(0,255,255))
-            print("refree drawn")
+            
             # Draw ball 
 
-            print("ball drawing")
+            
             for track_id, ball in ball_dict.items():
-                print("going to traingle")
                 frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
             
-            print("ball drawn")
+
 
 
             
-            print("done drawing")
-            output_video_frames.append(frame)
-            print("appened done")
 
-        print("returning the frame")
+            output_video_frames.append(frame)
+
+
+
         return output_video_frames
         
 
