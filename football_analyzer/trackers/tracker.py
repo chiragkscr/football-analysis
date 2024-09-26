@@ -4,7 +4,7 @@ import pickle
 import os
 import sys
 sys.path.append('../')
-from utils import get_center_of_bbox, get_bbox_width
+from utils import measure_distance, get_bbox_width, get_center_of_bbox
 import cv2
 import numpy as np
 import pandas as pd
@@ -174,13 +174,9 @@ class Tracker:
             
         
             frame = frame.copy()
-
-
             player_dict = tracks["players"][frame_num]
             ball_dict = tracks["ball"][frame_num]
             referee_dict = tracks["refrees"][frame_num]
-
-
             
             # Draw Players
             for track_id, player in player_dict.items():
@@ -188,8 +184,8 @@ class Tracker:
                 frame = self.draw_ellipse(frame, player["bbox"],color, track_id)
             
 
-                # if player.get('has_ball',False):
-                #     frame = self.draw_traingle(frame, player["bbox"],(0,0,255))
+                if player.get('has_ball',False):
+                    frame = self.draw_traingle(frame, player["bbox"],(255,0,0))
 
 
             # Draw Referee
