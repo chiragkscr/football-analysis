@@ -116,37 +116,7 @@ class Tracker:
             thickness=2,
             lineType=cv2.LINE_4
         )
-
-        rectangle_width = 40
-        rectangle_height=20
-        x1_rect = x_center - rectangle_width//2
-        x2_rect = x_center + rectangle_width//2
-        y1_rect = (y2- rectangle_height//2) +15
-        y2_rect = (y2+ rectangle_height//2) +15
-
-
-        if track_id is not None:
-            cv2.rectangle(frame,
-                          (int(x1_rect),int(y1_rect) ),
-                          (int(x2_rect),int(y2_rect)),
-                          color,
-                          cv2.FILLED)
-            
-            x1_text = x1_rect+12
-            if track_id > 99:
-                x1_text -=10
-            
-            cv2.putText(
-                frame,
-                f"{track_id}",
-                (int(x1_text),int(y1_rect+15)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                (0,0,0),
-                2
-            )
-        
-        
+ 
         return frame
 
 
@@ -228,14 +198,18 @@ class Tracker:
         return output_video_frames
         
     def interpolate_ball_positions(self, ball_positions):
+        #Extract the ball's bounding box for each frame, default to empty dict if missing
         ball_positions = [x.get(1,{}).get('bbox',{}) for x in ball_positions]
+
+        #Convert the list of bounding boxes to a DataFrame for interpolation
         df_ball_positions = pd.DataFrame(ball_positions, columns=['x1','y1','x2','y2'])
 
         #interpolate missing values
-        df_ball_positions = df_ball_positions.interpolate()
-        df_ball_positions = df_ball_positions.bfill() #if first and last frames if its missing
+        df_ball_positions = df_ball_positions.interpolate(limit_direction='both')
+        df_ball_positions = df_ball_positions.bfill() #filling missing values at the beginig if needed
+        df_ball_positions = df_ball_positions.ffill() #Fill missing values at the end if needed
 
-
+        #convert DataFrame bakc to a list of dictinaries with ball positions
         ball_positions = [{1:{"bbox":x}} for x in df_ball_positions.to_numpy().tolist()]
 
         return ball_positions
