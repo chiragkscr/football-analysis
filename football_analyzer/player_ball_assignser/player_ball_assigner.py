@@ -1,6 +1,8 @@
 import sys
 sys.path.append('../')
 from utils import get_center_of_bbox, measure_distance
+import torch 
+
 
 class PlayerBallAssigner():
     def __init__(self):
@@ -11,18 +13,22 @@ class PlayerBallAssigner():
 
 
         minimum_distance = 99999
-        assigned_player = -1
+        assigned_player =-1
         for player_id, player in players.items():
             player_bbox = player['bbox']
 
             distance_left = measure_distance((player_bbox[0], player_bbox[-1]), ball_position)
             distance_right = measure_distance((player_bbox[2], player_bbox[-1]), ball_position)
             distance = min(distance_left, distance_right)
+            # player_center = get_center_of_bbox(player_bbox)
+            # distance = measure_distance(player_center, ball_position)
 
+            
             if distance < self.max_player_ball_distance:
                 if distance < minimum_distance:
                     minimum_distance = distance
                     assigned_player = player_id
-
+                   
+        
         return assigned_player
                     

@@ -3,6 +3,10 @@ from trackers import Tracker
 from team_assignerr import TeamAssigner
 import cv2
 from player_ball_assignser import PlayerBallAssigner
+import numpy as np
+import torch
+torch.cuda.set_device(0)
+
 
 def main():
     #read video
@@ -53,16 +57,22 @@ def main():
 
     #Assign ball aquisition 
     player_assigner = PlayerBallAssigner()
+    team_ball_control = []
     for frame_num, player_track in enumerate(tracks['players']):
         ball_bbox = tracks['ball'][frame_num][1]['bbox']
         assigned_player = player_assigner.assign_ball_to_player(player_track, ball_bbox)
+        
+        
 
         if assigned_player != -1:
             tracks['players'][frame_num][assigned_player]['has_ball']  = True 
-
+            team_ball_control.append(tracks['players'][frame_num][assigned_player]['team'])
+        else:
+            team_ball_control.append(team_ball_control[-1])
+    team_ball_control = np.array(team_ball_control)
     # #Draw output
     # #draw object tracks
-    output_video_frames = tracker.draw_annotations(video_frames, tracks)
+    output_video_frames = tracker.draw_annotations(video_frames, tracks, team_ball_control)
 
     #Save video
     save_video(output_video_frames, 'output_video.avi')
